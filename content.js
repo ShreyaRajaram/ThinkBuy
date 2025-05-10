@@ -14,10 +14,10 @@ function delayModal(itemName = "this item") {
     <h3>Think Before You Buy</h3>
     <p id="countdownText">Do you really need ${itemName}? Wait 10 seconds before buying...</p>
     <p id="considerText">Consider the following:</p>
-    <ul id="considerList">
-      <li> - Can you afford it?</li>
-      <li> - Do you own something similar?</li>
-      <li> - Is it worth the price?</li>
+    <ul id="considerList" style="list-style: disc; padding-left: 20px;">
+      <li> Can you afford it?</li>
+      <li> Do you own something similar?</li>
+      <li> Is it worth the price?</li>
     </ul>
   `;
 
@@ -42,21 +42,46 @@ function delayModal(itemName = "this item") {
 }
 
 function processBuyButtons() {
+  // Select all buttons and inputs of type 'submit'
   const buyButtons = [...document.querySelectorAll("button, input[type='submit']")].filter(el => {
-    const text = el.innerText.toLowerCase();
-    const ariaLabel = el.getAttribute("aria-label")?.toLowerCase() || "";
-    return (text.includes("buy now") || text.includes("add to cart") || ariaLabel.includes("buy") || ariaLabel.includes("cart"))
-      && !el.classList.contains("thinkbuy-processed");
+    const text = el.textContent?.trim().toLowerCase() || el.value?.trim().toLowerCase(); // Check textContent or value
+    const siblingText = el.nextElementSibling?.textContent?.trim().toLowerCase(); // Check sibling text
+    return (
+      (text && (
+        text.includes("buy now") ||
+        text.includes("add to cart") ||
+        text.includes("add to bag") ||
+        text.includes("checkout") ||
+        text.includes("purchase") ||
+        text.includes("order") ||
+        text.includes("add")
+      )) ||
+      (siblingText && (
+        siblingText.includes("buy now") ||
+        siblingText.includes("add to cart") ||
+        siblingText.includes("add to bag") ||
+        siblingText.includes("checkout") ||
+        siblingText.includes("purchase") ||
+        siblingText.includes("order") ||
+        siblingText.includes("add")
+      ))
+    ) && !el.classList.contains("thinkbuy-processed"); // Avoid processing the same button multiple times
   });
 
   buyButtons.forEach(btn => {
-    const clone = btn.cloneNode(true);
+    const clone = btn.cloneNode(true); // Clone the button to preserve its appearance
     clone.classList.add("thinkbuy-processed");
     clone.addEventListener("click", e => {
       e.preventDefault();
-      delayModal("this item");
+
+      // Extract the item name from the button's context
+      const parentElement = btn.closest("div, section, article"); // Look for a parent container
+      const itemNameElement = parentElement?.querySelector("[data-pname], [data-test='product-title'], .product-title, h1, h2, h3, span.a-size-medium");
+      const itemName = itemNameElement?.textContent?.trim() || "this item";
+
+      delayModal(itemName);
     });
-    btn.replaceWith(clone);
+    btn.replaceWith(clone); // Replace the original button with the cloned one
   });
 }
 
