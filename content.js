@@ -5,37 +5,40 @@ function delayModal(itemName = "this item") {
   modal.style.left = "50%";
   modal.style.transform = "translateX(-50%)";
   modal.style.zIndex = "9999";
-  modal.style.background = "#fff";
-  modal.style.border = "2px solid #222";
+  modal.style.background = "rgb(251, 196, 236)";
+  modal.style.border = "2px solid rgb(190, 31, 147)";
   modal.style.padding = "20px";
-  modal.style.boxShadow = "0 0 10px rgb(224, 16, 169)";
+  modal.style.boxShadow = "0 0 10px rgb(237, 53, 188)";
+  modal.style.borderRadius = "10px"; // Added to round the edges
   modal.innerHTML = `
     <h3>Think Before You Buy</h3>
     <p id="countdownText">Do you really need ${itemName}? Wait 10 seconds before buying...</p>
-    <button id="confirmBuy" disabled>Buy Now</button>
+    <p id="considerText">Consider the following:</p>
+    <ul id="considerList">
+      <li> - Can you afford it?</li>
+      <li> - Do you own something similar?</li>
+      <li> - Is it worth the price?</li>
+    </ul>
   `;
 
   document.body.appendChild(modal);
 
   let timer = 10;
-  const btn = modal.querySelector("#confirmBuy");
   const countdownText = modal.querySelector("#countdownText");
+  const considerText = modal.querySelector("#considerText");
+  const considerList = modal.querySelector("#considerList");
+
   const interval = setInterval(() => {
     timer--;
-    countdownText.textContent = `Do you really need ${itemName}? Wait ${timer} seconds before buying...`;
-    btn.textContent = `Buy Now (${timer})`;
+    countdownText.textContent = `Do you really need ${itemName}? Wait ${timer} seconds before deciding...`;
     if (timer <= 0) {
       clearInterval(interval);
-      countdownText.textContent = `Do you really need ${itemName}? You can now buy it.`;
-      btn.textContent = "Buy Now";
-      btn.disabled = false;
+      countdownText.textContent = `Time's up! Make sure to purchase mindfully!`;
+      // Hide the "Consider the following" text and list
+      considerText.style.display = "none";
+      considerList.style.display = "none";
     }
   }, 1000);
-
-  btn.addEventListener("click", () => {
-    localStorage.setItem(`thinkbuy-${Date.now()}`, itemName);
-    modal.remove();
-  });
 }
 
 function processBuyButtons() {
