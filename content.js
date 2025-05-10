@@ -8,11 +8,10 @@ function delayModal(itemName = "this item") {
   modal.style.background = "#fff";
   modal.style.border = "2px solid #222";
   modal.style.padding = "20px";
-  modal.style.boxShadow = "0 0 10px rgba(0,0,0,0.3)";
+  modal.style.boxShadow = "0 0 10px rgb(224, 16, 169)";
   modal.innerHTML = `
     <h3>Think Before You Buy</h3>
-    <p>Do you really need ${itemName}?</p>
-    <p>Wait 10 seconds before buying...</p>
+    <p id="countdownText">Do you really need ${itemName}? Wait 10 seconds before buying...</p>
     <button id="confirmBuy" disabled>Buy Now</button>
   `;
 
@@ -20,11 +19,14 @@ function delayModal(itemName = "this item") {
 
   let timer = 10;
   const btn = modal.querySelector("#confirmBuy");
+  const countdownText = modal.querySelector("#countdownText");
   const interval = setInterval(() => {
     timer--;
+    countdownText.textContent = `Do you really need ${itemName}? Wait ${timer} seconds before buying...`;
     btn.textContent = `Buy Now (${timer})`;
     if (timer <= 0) {
       clearInterval(interval);
+      countdownText.textContent = `Do you really need ${itemName}? You can now buy it.`;
       btn.textContent = "Buy Now";
       btn.disabled = false;
     }
