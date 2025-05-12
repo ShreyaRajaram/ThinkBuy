@@ -1,3 +1,6 @@
+
+
+
 function delayModal(itemName = "this item") {
   const modal = document.createElement("div");
   modal.style.position = "fixed";
@@ -10,7 +13,9 @@ function delayModal(itemName = "this item") {
   modal.style.padding = "20px";
   modal.style.boxShadow = "0 0 10px rgb(237, 53, 188)";
   modal.style.borderRadius = "10px"; // Added to round the edges
+  modal.style.fontFamily = "'Montserrat', sans-serif"; // Updated font to a modern, user-friendly option
   modal.innerHTML = `
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
     <h3>Think Before You Buy</h3>
     <p id="countdownText">Do you really need ${itemName}? Wait 10 seconds before buying...</p>
     <p id="considerText">Consider the following:</p>
