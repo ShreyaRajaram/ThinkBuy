@@ -2,46 +2,192 @@
 
 
 function delayModal(itemName = "this item") {
-  const modal = document.createElement("div");
-  modal.style.position = "fixed";
-  modal.style.top = "20%";
-  modal.style.left = "50%";
-  modal.style.transform = "translateX(-50%)";
-  modal.style.zIndex = "9999";
-  modal.style.background = "rgb(251, 196, 236)";
-  modal.style.border = "2px solid rgb(190, 31, 147)";
-  modal.style.padding = "20px";
-  modal.style.boxShadow = "0 0 10px rgb(237, 53, 188)";
-  modal.style.borderRadius = "10px"; // Added to round the edges
-  modal.style.fontFamily = "'Montserrat', sans-serif"; // Updated font to a modern, user-friendly option
-  modal.innerHTML = `
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet" />
-    <h3>Think Before You Buy</h3>
-    <p id="countdownText">Do you really need ${itemName}? Wait 10 seconds before buying...</p>
-    <p id="considerText">Consider the following:</p>
-    <ul id="considerList" style="list-style: disc; padding-left: 20px;">
-      <li> Can you afford it?</li>
-      <li> Do you own something similar?</li>
-      <li> Is it worth the price?</li>
-    </ul>
+  // Create backdrop
+  const backdrop = document.createElement("div");
+  backdrop.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 9998;
+    animation: fadeIn 0.2s ease-out;
   `;
 
+  const modal = document.createElement("div");
+  modal.id = "thinkbuy-modal";
+  modal.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-0.5deg);
+    z-index: 9999;
+    width: 90%;
+    max-width: 420px;
+    background: #fce4f0;
+    border: 3px solid #f8a5c2;
+    border-radius: 18px;
+    box-shadow: 8px 8px 0 rgba(237, 53, 188, 0.2), 0 0 0 1px rgba(190, 31, 147, 0.1);
+    padding: 28px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    animation: slideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow: hidden;
+  `;
+
+  modal.innerHTML = `
+    <style>
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes slideIn {
+        from { 
+          opacity: 0;
+          transform: translate(-50%, -45%) rotate(-1deg) scale(0.95);
+        }
+        to { 
+          opacity: 1;
+          transform: translate(-50%, -50%) rotate(-0.5deg) scale(1);
+        }
+      }
+      @keyframes wiggle {
+        0%, 100% { transform: rotate(-0.5deg); }
+        50% { transform: rotate(0.5deg); }
+      }
+      #thinkbuy-modal {
+        animation: slideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), wiggle 3s ease-in-out infinite;
+      }
+    </style>
+    <div style="text-align: center; margin-bottom: 20px;">
+      <div style="
+        font-size: 56px;
+        font-weight: 700;
+        color: #ed35bc;
+        margin: 0 0 8px;
+        line-height: 1;
+        text-shadow: 2px 2px 0 rgba(190, 31, 147, 0.2);
+        transform: rotate(-1deg);
+        display: inline-block;
+      " id="countdownNumber">10</div>
+      <p style="
+        color: #8b5a7a;
+        font-size: 16px;
+        margin: 0;
+        font-weight: 500;
+      " id="countdownText">seconds to pause and think</p>
+    </div>
+    
+    <div style="
+      background: white;
+      border: 2px dashed #f8a5c2;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+      position: relative;
+    ">
+      <p style="
+        color: #5a3a4a;
+        font-size: 17px;
+        margin: 0 0 16px;
+        line-height: 1.5;
+        font-weight: 500;
+      ">
+        Before you buy <strong style="color: #be1f93;">${itemName}</strong>, take a breath
+      </p>
+      
+      <div id="considerSection">
+        <p style="
+          color: #8b5a7a;
+          font-size: 14px;
+          margin: 0 0 12px;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        ">Quick check-in:</p>
+        <ul id="considerList" style="
+          list-style: none;
+          padding: 0;
+          margin: 0;
+          color: #5a3a4a;
+          font-size: 15px;
+          line-height: 1.8;
+        ">
+          <li style="margin-bottom: 8px; padding-left: 22px; position: relative;">
+            <span style="position: absolute; left: 0; color: #ed35bc; font-size: 18px;">•</span>
+            Can you actually afford this right now?
+          </li>
+          <li style="margin-bottom: 8px; padding-left: 22px; position: relative;">
+            <span style="position: absolute; left: 0; color: #ed35bc; font-size: 18px;">•</span>
+            Do you already have something like this?
+          </li>
+          <li style="margin-bottom: 0; padding-left: 22px; position: relative;">
+            <span style="position: absolute; left: 0; color: #ed35bc; font-size: 18px;">•</span>
+            Is it really worth the price?
+          </li>
+        </ul>
+      </div>
+    </div>
+    
+    <div id="completionMessage" style="
+      display: none;
+      text-align: center;
+      padding: 20px;
+      background: white;
+      border: 2px solid #f8a5c2;
+      border-radius: 12px;
+      margin-top: 20px;
+    ">
+      <div style="
+        font-size: 25px;
+        font-weight: 700;
+        color: #ed35bc;
+        margin-bottom: 8px;
+        letter-spacing: -1px;
+        text-align: center;
+      ">You're all set!</div>
+      <p style="
+        color: #be1f93;
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0 0 4px;
+      ">Make a choice that feels right for you</p>
+    </div>
+  `;
+
+  document.body.appendChild(backdrop);
   document.body.appendChild(modal);
 
+  // Close functionality
+  const closeModal = () => {
+    modal.style.animation = "fadeIn 0.2s ease-out reverse";
+    backdrop.style.animation = "fadeIn 0.2s ease-out reverse";
+    setTimeout(() => {
+      modal.remove();
+      backdrop.remove();
+    }, 200);
+  };
+  
+  backdrop.addEventListener("click", closeModal);
+
+  // Countdown
   let timer = 10;
-  const countdownText = modal.querySelector("#countdownText");
-  const considerText = modal.querySelector("#considerText");
-  const considerList = modal.querySelector("#considerList");
+  const countdownNumber = modal.querySelector("#countdownNumber");
+  const countdownContainer = countdownNumber.parentElement; // The div containing countdown
+  const whiteBox = modal.querySelector("#considerSection").parentElement; // The white box div
+  const completionMessage = modal.querySelector("#completionMessage");
 
   const interval = setInterval(() => {
     timer--;
-    countdownText.textContent = `Do you really need ${itemName}? Wait ${timer} seconds before deciding...`;
+    countdownNumber.textContent = timer;
+    
     if (timer <= 0) {
       clearInterval(interval);
-      countdownText.textContent = `Time's up! Make sure to purchase mindfully!`;
-      // Hide the "Consider the following" text and list
-      considerText.style.display = "none";
-      considerList.style.display = "none";
+      whiteBox.style.display = "none";
+      completionMessage.style.display = "block";
+      countdownContainer.style.display = "none";
+      
+      setTimeout(closeModal, 2500);
     }
   }, 1000);
 }
