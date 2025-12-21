@@ -192,6 +192,43 @@ function delayModal(itemName = "this item") {
   }, 1000);
 }
 
+function cleanProductName(text) {
+  if (!text) return null;
+  
+  // Remove common separators and split to get the product part
+  let cleaned = text
+    .split("|")[0]  // "Product | Store"
+    .split("–")[0]  // "Product – Store"
+    .split("—")[0]  // "Product — Store"
+    .split("-")[0]  // "Product - Store"
+    .split("•")[0]  // "Product • Store"
+    .trim();
+  
+  // Remove common store/brand patterns (case insensitive)
+  const storePatterns = [
+    /^\s*(amazon|walmart|target|ebay|etsy|aliexpress|shopify|buy|purchase|order|add to cart)\s*[:\-–—•|]/i,
+    /[:\-–—•|]\s*(amazon|walmart|target|ebay|etsy|aliexpress|shopify|store|official store|online|shop|buy now|free shipping|prime)\s*$/i,
+    /\s*\|\s*.+$/i,  // Remove anything after |
+    /\s*-\s*(amazon|walmart|target|ebay|etsy).*$/i,
+    /\s*\([^)]*store[^)]*\)/i,  // Remove "(Store Name)"
+    /\s*\[[^\]]*store[^\]]*\]/i,  // Remove "[Store Name]"
+  ];
+  
+  storePatterns.forEach(pattern => {
+    cleaned = cleaned.replace(pattern, "").trim();
+  });
+  
+  // Remove excessive whitespace
+  cleaned = cleaned.replace(/\s+/g, " ").trim();
+  
+  // If cleaning resulted in empty or very short text, return null to use fallback
+  if (!cleaned || cleaned.length < 3) {
+    return null;
+  }
+  
+  return cleaned;
+}
+
 function processBuyButtons() {
   // Select all buttons and inputs of type 'submit'
   const buyButtons = [...document.querySelectorAll("button, input[type='submit']")].filter(el => {
@@ -225,10 +262,66 @@ function processBuyButtons() {
     clone.addEventListener("click", e => {
       e.preventDefault();
 
-      // Extract the item name from the button's context
-      const parentElement = btn.closest("div, section, article"); // Look for a parent container
-      const itemNameElement = parentElement?.querySelector("[data-pname], [data-test='product-title'], .product-title, h1, h2, h3, span.a-size-medium");
-      const itemName = itemNameElement?.textContent?.trim() || "this item";
+      //extract the item name 
+      let itemName = "this item";
+      
+      // Strategy 1: Look in parent containers with common product selectors
+      const parentElement = btn.closest("div, section, article, li");
+      if (parentElement) {
+        const selectors = [
+          "[data-pname]",
+          "[data-test='product-title']",
+          ".product-title",
+          "h1[id*='product'], h1[class*='product'], h1[class*='title']",
+          "h2[id*='product'], h2[class*='product'], h2[class*='title']",
+          "h3[id*='product'], h3[class*='product'], h3[class*='title']",
+          "span.a-size-medium", // Amazon
+          "[class*='product-title']",
+          "[class*='product-name']",
+          "[class*='item-title']",
+          "[id*='product-title']",
+          "[id*='product-name']"
+        ];
+        
+        for (const selector of selectors) {
+          const element = parentElement.querySelector(selector);
+          if (element) {
+            const text = element.textContent?.trim();
+            if (text && text.length > 0 && text.length < 200) {
+              const cleaned = cleanProductName(text);
+              if (cleaned) {
+                itemName = cleaned;
+                break;
+              }
+            }
+          }
+        }
+      }
+      
+      // Strategy 2: Look for page title or meta tags if nothing found
+      if (itemName === "this item") {
+        const pageTitle = document.querySelector("title")?.textContent?.trim();
+        if (pageTitle) {
+          const cleaned = cleanProductName(pageTitle);
+          if (cleaned) {
+            itemName = cleaned;
+          }
+        }
+      }
+      
+      // Strategy 3: Look for h1 on the page if still nothing found
+      if (itemName === "this item") {
+        const h1 = document.querySelector("h1");
+        if (h1) {
+          const text = h1.textContent?.trim();
+          if (text && text.length > 0 && text.length < 200) {
+            const cleaned = cleanProductName(text);
+            if (cleaned) {
+              itemName = cleaned;
+            }
+          }
+        }
+      }
 
       delayModal(itemName);
     });
