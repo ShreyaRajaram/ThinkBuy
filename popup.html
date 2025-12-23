@@ -1,5 +1,167 @@
+<!DOCTYPE html>
 <html>
-  <body>
-    <h2>Hello from ThinkBuy!</h2>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      width: 320px;
+      padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: #f8f9fa;
+    }
+    h2 {
+      color: #be1f93;
+      margin-bottom: 20px;
+      font-size: 20px;
+      text-align: center;
+    }
+    .login-section {
+      display: block;
+    }
+    .stats-section {
+      display: none;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      color: #333;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.2s;
+    }
+    input:focus {
+      outline: none;
+      border-color: #f8a5c2;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #ed35bc;
+      color: white;
+      border: 2px solid #f8a5c2;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    button:hover {
+      background: #be1f93;
+      border-color: #be1f93;
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .toggle-link {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 13px;
+      color: #be1f93;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    .toggle-link:hover {
+      color: #ed35bc;
+    }
+    .error {
+      color: #e53e3e;
+      font-size: 13px;
+      margin-top: 5px;
+      display: none;
+    }
+    .stats-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: #ed35bc;
+      margin-bottom: 5px;
+    }
+    .stat-label {
+      font-size: 14px;
+      color: #64748b;
+    }
+    .logout-btn {
+      background: #e2e8f0;
+      color: #475569;
+      margin-top: 10px;
+    }
+    .logout-btn:hover {
+      background: #cbd5e1;
+    }
+  </style>
+</head>
+<body>
+  <h2>ThinkBuy</h2>
+  
+  <!-- Login Section -->
+  <div id="loginSection" class="login-section">
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" required>
+        <div class="error" id="emailError"></div>
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" required>
+        <div class="error" id="passwordError"></div>
+      </div>
+      <button type="submit" id="loginBtn">Sign In</button>
+      <div class="toggle-link" id="toggleSignup">Don't have an account? Sign up</div>
+    </form>
+    
+    <form id="signupForm" style="display: none;">
+      <div class="form-group">
+        <label for="signupEmail">Email</label>
+        <input type="email" id="signupEmail" required>
+        <div class="error" id="signupEmailError"></div>
+      </div>
+      <div class="form-group">
+        <label for="signupPassword">Password</label>
+        <input type="password" id="signupPassword" required minlength="6">
+        <div class="error" id="signupPasswordError"></div>
+      </div>
+      <button type="submit" id="signupBtn">Sign Up</button>
+      <div class="toggle-link" id="toggleLogin">Already have an account? Sign in</div>
+    </form>
+  </div>
+  
+  <!-- Stats Section -->
+  <div id="statsSection" class="stats-section">
+    <div class="stats-card">
+      <div class="stat-value" id="totalSaved">$0</div>
+      <div class="stat-label">Total Saved</div>
+    </div>
+    <div class="stats-card">
+      <div class="stat-value" id="totalAttempts">0</div>
+      <div class="stat-label">Purchase Attempts Prevented</div>
+    </div>
+    <button class="logout-btn" id="logoutBtn">Sign Out</button>
+  </div>
+  
+  <script src="supabase-config.js"></script>
+  <script src="popup.js"></script>
+</body>
 </html>

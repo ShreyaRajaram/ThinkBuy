@@ -4,6 +4,9 @@
     "version": "1.0",
     "description": "Helps you pause before impulse buying.",
     "permissions": ["storage", "scripting", "activeTab"],
+    "host_permissions": [
+      "https://*.supabase.co/*"
+    ],
     "action": {
       "default_popup": "popup.html",
       "default_icon": "icons/icon128.png"
@@ -12,6 +15,12 @@
       {
         "matches": ["<all_urls>"],
         "js": ["content.js"]
+      }
+    ],
+    "web_accessible_resources": [
+      {
+        "resources": ["supabase-config.js"],
+        "matches": ["<all_urls>"]
       }
     ],
     "icons": {
