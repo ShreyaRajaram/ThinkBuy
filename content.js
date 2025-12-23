@@ -1,153 +1,6 @@
 
 
 
-// Function to extract product price from the page
-function extractProductPrice() {
-  // Common price selectors
-  const priceSelectors = [
-    '[data-price]',
-    '.price',
-    '.product-price',
-    '[class*="price"]',
-    '[id*="price"]',
-    'span[class*="currency"]',
-    '.a-price-whole', // Amazon
-    '[data-testid*="price"]'
-  ];
-  
-  for (const selector of priceSelectors) {
-    const element = document.querySelector(selector);
-    if (element) {
-      const text = element.textContent || element.innerText;
-      // Extract number from price string (e.g., "$29.99" -> 29.99)
-      const match = text.match(/[\d,]+\.?\d*/);
-      if (match) {
-        const price = parseFloat(match[0].replace(/,/g, ''));
-        if (price > 0 && price < 1000000) { // Reasonable price range
-          return price;
-        }
-      }
-    }
-  }
-  
-  return null;
-}
-
-// Function to check if extension should be active on current site
-async function isExtensionEnabled() {
-  try {
-    // Get user auth info
-    const result = await chrome.storage.local.get(['supabase_token', 'user_id', 'supabase_url', 'supabase_key']);
-    
-    if (!result.supabase_token || !result.user_id || !result.supabase_url || !result.supabase_key) {
-      // Not logged in, default to enabled on all sites
-      return true;
-    }
-    
-    // Get current domain
-    const currentDomain = window.location.hostname.replace('www.', '').toLowerCase();
-    
-    // Get user settings
-    const response = await fetch(`${result.supabase_url}/rest/v1/user_settings?user_id=eq.${result.user_id}`, {
-      headers: {
-        'apikey': result.supabase_key,
-        'Authorization': `Bearer ${result.supabase_token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    if (!response.ok) {
-      // If error, default to enabled
-      return true;
-    }
-    
-    const settings = await response.json();
-    
-    if (!settings || settings.length === 0) {
-      // No settings, default to enabled on all sites
-      return true;
-    }
-    
-    const enabledSites = settings[0].enabled_sites || ['*'];
-    
-    // Check if all sites enabled
-    if (enabledSites.includes('*')) {
-      return true;
-    }
-    
-    // Check if current domain is enabled (exact match or subdomain)
-    return enabledSites.some(site => {
-      const normalizedSite = site.replace('www.', '').toLowerCase();
-      return currentDomain === normalizedSite || currentDomain.endsWith('.' + normalizedSite);
-    });
-  } catch (error) {
-    console.error('Error checking extension settings:', error);
-    // Default to enabled on error
-    return true;
-  }
-}
-
-// Function to track purchase attempt in Supabase
-async function trackPurchaseAttempt(itemName) {
-  try {
-    // Get user auth info
-    const result = await chrome.storage.local.get(['supabase_token', 'user_id', 'supabase_url', 'supabase_key']);
-    
-    if (!result.supabase_token || !result.user_id) {
-      // User not logged in, skip tracking
-      return;
-    }
-    
-    // Extract price if available
-    const price = extractProductPrice();
-    const amountSaved = price || 0; // Use price as amount saved, or 0 if not found
-    
-    // Prepare data
-    const purchaseData = {
-      user_id: result.user_id,
-      product_name: itemName,
-      price: price,
-      amount_saved: amountSaved,
-      website_url: window.location.href,
-      created_at: new Date().toISOString()
-    };
-    
-    // Save to Supabase
-    await savePurchaseAttemptToSupabase(result.supabase_token, purchaseData);
-    
-    console.log('Purchase attempt tracked:', purchaseData);
-  } catch (error) {
-    console.error('Error tracking purchase attempt:', error);
-    // Don't show error to user, just log it
-  }
-}// Supabase helper functions (for content script)
-async function savePurchaseAttemptToSupabase(accessToken, data) {
-  // Get Supabase URL and key from storage (set by popup)
-  const config = await chrome.storage.local.get(['supabase_url', 'supabase_key']);
-  if (!config.supabase_url || !config.supabase_key) {
-    console.error('Supabase not configured');
-    return;
-  }
-  
-  const url = `${config.supabase_url}/rest/v1/purchase_attempts`;
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'apikey': config.supabase_key,
-      'Authorization': `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=representation'
-    },
-    body: JSON.stringify(data)
-  });
-  
-  if (!response.ok) {
-    throw new Error('Failed to save purchase attempt');
-  }
-  
-  return await response.json();
-}
-
 function delayModal(itemName = "this item") {
   // Create backdrop
   const backdrop = document.createElement("div");
@@ -406,16 +259,8 @@ function processBuyButtons() {
   buyButtons.forEach(btn => {
     const clone = btn.cloneNode(true); // Clone the button to preserve its appearance
     clone.classList.add("thinkbuy-processed");
-    clone.addEventListener("click", async (e) => {
+    clone.addEventListener("click", e => {
       e.preventDefault();
-
-      // Check if extension is enabled on this site
-      const enabled = await isExtensionEnabled();
-      if (!enabled) {
-        // Extension disabled on this site, allow normal button behavior
-        btn.click();
-        return;
-      }
 
       //extract the item name 
       let itemName = "this item";
@@ -479,9 +324,6 @@ function processBuyButtons() {
       }
 
       delayModal(itemName);
-      
-      // Track purchase attempt
-      trackPurchaseAttempt(itemName);
     });
     btn.replaceWith(clone); // Replace the original button with the cloned one
   });
